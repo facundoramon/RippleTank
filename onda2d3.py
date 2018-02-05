@@ -6,48 +6,39 @@ from matplotlib import animation
 Dominio
 """
 
-Lx = 10;
-Ly = 10;
-dx = 0.1;
-dy = dx;
-nx = np.int(Lx/dx);
-ny = np.int(Ly/dy);
-x = np.arange(0,Lx,dx);
-y = np.arange(0,Ly,dy);
+Lx = 10; #Dimension X
+Ly = 10; #Dimension Y
+dx = 0.1; #Paso espacial en X
+dy = dx; #Paso espacial en Y
+nx = np.int(Lx/dx); #Cantidad de pasos en X
+ny = np.int(Ly/dy); #Cantidad de pasos en Y
+x = np.arange(0,Lx,dx); #Vector X
+y = np.arange(0,Ly,dy); #Vector Y
 
-x, y=np.meshgrid(x,y);
+x, y=np.meshgrid(x,y); #Grilla XY
 
-T=40;
+T=20; #Tiempo total de simulacion
 
 """
 Condiciones Iniciales
 """
-m = np.multiply(1,np.ones(ny));
-#m[30:60] = np.linspace(.5,1.2,ny-30);
-m[40:60] = .5;
-c = np.transpose(np.tile(m,(nx,1)));
+m = np.multiply(1,np.ones(ny)); #Velocidad de medio en Y
+#m[30:] = np.linspace(.5,1.2,ny-30); #Gradiente de Velocidad de medio en Y
+#m[40:60] = .5; #Cambio brusco de medio
+c = np.transpose(np.tile(m,(nx,1))); #Matriz de velocidad en Grilla XY
 
-dt = .05;
+dt = .05; #Paso temporal
 
-C = np.multiply(dt/dy,c);
-#C=np.multiply(0.5,np.ones((nx,ny)))
+C = np.multiply(dt/dy,c); #C=dt*c/dy
 
-t = 0.;
-cnt = 1;
+t = 0.; #Tiempo inicial
+cnt = 1; #Contador Auxiliar
 
-wn = np.zeros((ny,nx,np.int(T/dt)+1));
-wnp1 = np.copy(wn[:,:,0]);
+wn = np.zeros((ny,nx,np.int(T/dt)+1)); #Matriz 3D para resultados
+wnp1 = np.copy(wn[:,:,0]); #Matriz 2D para resultados en t+1
 
-"""
-"""
-#N=50;
-#h = np.linspace(-5,5,N)
-#h = np.multiply(0.2,np.sinc(h));
-#h = np.hanning(N);
-"""
-"""
 
-while(t<T-dt):
+while(t<T):
 
 #   PAREDES ABSORBENTES    
     wnp1[0,:]=np.sum([wn[1,:,cnt-1],
@@ -75,16 +66,22 @@ while(t<T-dt):
                                               wn[:,-1,cnt-1]))],
                                   axis=0);
     
-    wn[:,:,cnt]=np.copy(wnp1);    
+    wn[:,:,cnt]=np.copy(wnp1); #Guardo resultado anterior   
     
-    wn[10,10,cnt]=1.5*np.sin(3*np.pi*t);
+    """
+    Fuente
+    """
+    
+    wn[20,20,cnt]=1.5*np.sin(3*np.pi*t); #Fuente senoidal en (20,20)
+    
+    """
+    Paredes
+    """
+    wn[0:40,49,cnt]=0; #Barrera Acústica
 
-#    DOBLE SLITS
-#    wn[45:55,3,cnt]=dt**2*300*np.sin(3*np.pi*t)
-#    wn[:45,20,cnt]=0;
-#    wn[46:54,20,cnt]=0;
-#    wn[55:,20,cnt]=0;
-
+    """
+    Resolucion FDTD
+    """
     for i in range(1,ny-1):
         for j in range(1,nx-1):
             wnp1[i,j]=2*wn[i,j,cnt]-wn[i,j,cnt-1]+\
@@ -94,21 +91,27 @@ while(t<T-dt):
     cnt+=1;
     t+=dt;
 
+"""
+Parámetros visuales
+"""
 fig = plt.figure()
 ax = plt.axes(xlim=(1, nx-1), ylim=(1, ny-1))
 im = ax.imshow(wn[:,:,0], animated=True, vmin=-.5,vmax=.5, cmap='viridis')
 
-'''
-Doble Slits
-wn[:,21:,:]=np.multiply(10,wn[:,21:,:]);
-wn[:45,20,:]=-100;
-wn[46:54,20,:]=-100;
-wn[55:,20,:]=-100;
-'''
+"""
+Pintura de obstaculos
+"""
+wn[0:40,49,:]=-100;
 
-
-z=np.multiply(.4,np.repeat(c[:,:,np.newaxis],cnt,axis=2))-0.2;
+"""
+Cambio de color del medio segun c
+"""
+z=np.multiply(.4,np.repeat(c[:,:,np.newaxis],cnt,axis=2))-.4;
 wn+=z;
+
+"""
+Animacion
+"""
 
 def init():
     im.set_array(wn[:,:,1])
@@ -121,5 +124,6 @@ def animate(i):
 
 ani = animation.FuncAnimation(fig, animate, init_func=init,
                               frames=cnt-2, interval=1, blit=True)
-#ani.save('mode1.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-#plt.show()   
+
+#ani.save('barrera.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+  
