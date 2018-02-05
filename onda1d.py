@@ -37,7 +37,7 @@ h = np.linspace(-5,5,N)
 h = np.multiply(0.2,np.sinc(h));
 
 """
-Resolucion FDTD
+Resolucion
 """
 
 while(t<T):
@@ -50,12 +50,12 @@ while(t<T):
     """
     
     if (cnt<=N):
-        wn[0,cnt]=h[cnt-1];
+        wn[0,cnt]=h[cnt-1]; #Genera función SINC
     else:
-        wnp1[0]=wn[1,cnt]+((C-1)/(C+1))*(wnp1[1]-wn[0,cnt]);
+        wnp1[0]=wn[1,cnt]+((C-1)/(C+1))*(wnp1[1]-wn[0,cnt]); #Condicion de borde absorbente
 
     """
-    Resolucion de ecuacion de onda
+    Resolucion de FDTD
     """
     for i in range(1,nx-1):
         wnp1[i]=2*wn[i,cnt]-wn[i,cnt-1]+pow(C,2)*(wn[i+1,cnt]-2*wn[i,cnt]+wn[i-1,cnt])
@@ -85,4 +85,3 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=cnt, interval=200/cnt, blit=True)
 
 #anim.save('sinc.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-plt.show()
