@@ -8,72 +8,64 @@ from matplotlib import animation
 Dominio
 """
 
-Lx = 10;
-dx = 0.1;
-nx = np.int(Lx/dx);
-x = np.arange(0,Lx,dx);
+Lx = 10; #Largo de la cuerda
+dx = 0.1; #Pasos espaciales
+nx = np.int(Lx/dx); #cantidad de pasos espaciales
+x = np.arange(0,Lx,dx); #vector de posicion en x
 
-T=50;
+T=50; #Tiempo de simulacion
 
 """
 Condiciones Iniciales
 """
 
-C=1;
-c = 1;
-dt = C*dx/c;
+C=1; #C=c*dt/dx
+c = 1; #velocidad de propagacion
+dt = C*dx/c; #Paso temporal
 
-t = 0;
-cnt = 1;
+t = 0; #Tiempo inicial
+cnt = 1; #Contador auxiliar
 
-wn = np.zeros((nx,np.int(T/dt)+1));
-wnp1 = np.copy(wn[:,cnt]);
+wn = np.zeros((nx,np.int(T/dt)+1)); #Matriz de resultados 
+wnp1 = np.copy(wn[:,cnt]); #Resultados en t+1
 
 """
+Estimulo
 """
-N=50;
+N=50; #Tamaño de funcion sinc
 h = np.linspace(-5,5,N)
 h = np.multiply(0.2,np.sinc(h));
-#h = np.hanning(N);
-"""
-"""
 
-#f, = plt.plot(x,wn[:,0],marker='o',lw=0,markersize=5);
-#fig = plt.gca();
-#fig.set_xlim([0,Lx])
-#fig.set_ylim([-1,1])
-#plt.show();
+"""
+Resolucion FDTD
+"""
 
 while(t<T):
  
-    wn[:,cnt]=np.copy(wnp1);
-    wn[-1,cnt]=0;
+    wn[:,cnt]=np.copy(wnp1); #Guarda posición anterior
+    wn[-1,cnt]=0; #Condicion de borde reflejante
     
-    if(t<=T*.1*4):
-        wn[0,cnt]=.2*np.sin(.5*np.pi*t);
+    """
+    Generacion de estímulo
+    """
     
-#    if (cnt<=N):
-#        wn[0,cnt]=h[cnt-1];
-#    else:
-#        wnp1[0]=wn[1,cnt]+((C-1)/(C+1))*(wnp1[1]-wn[0,cnt]);
-##        wn[0,cnt]=0;
-    
-#    if (t<=3):
-#        wnp1[0]=pow(dt,2)*20*np.sin(np.pi*t);
-#    elif (t<3.2):
-#        wnp1[0]=0;
-#    else:        
-#        wnp1[0]=wn[1,cnt]+((C-1)/(C+1))*(wnp1[1]-wn[0,cnt]);
-        
+    if (cnt<=N):
+        wn[0,cnt]=h[cnt-1];
+    else:
+        wnp1[0]=wn[1,cnt]+((C-1)/(C+1))*(wnp1[1]-wn[0,cnt]);
+
+    """
+    Resolucion de ecuacion de onda
+    """
     for i in range(1,nx-1):
         wnp1[i]=2*wn[i,cnt]-wn[i,cnt-1]+pow(C,2)*(wn[i+1,cnt]-2*wn[i,cnt]+wn[i-1,cnt])
-    
-#    f.set_data(x,wn[:,cnt])
-#    plt.pause(.001)
     
     cnt+=1;
     t+=dt;
     
+"""
+Generacion de animación
+"""
 fig = plt.figure()
 ax = plt.axes(xlim=(0, Lx), ylim=(-.5, .5))
 line, = ax.plot([], [], lw=0, marker='o')
@@ -92,5 +84,5 @@ def animate(i):
 anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=cnt, interval=200/cnt, blit=True)
 
-anim.save('rope_armonico4.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+#anim.save('sinc.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 plt.show()
