@@ -92,6 +92,11 @@ while(t<T):
     t+=dt;
 
 """
+Calculo de RMS
+"""
+wRMS = np.sqrt(np.mean(wn[:,:,cnt-150:cnt]**2,axis=-1));
+
+"""
 Parámetros visuales
 """
 fig = plt.figure()
