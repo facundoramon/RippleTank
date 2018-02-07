@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
+import scipy as sp
 
 """
 Dominio
@@ -72,7 +73,7 @@ while(t<T):
     Fuente
     """
     
-    wn[20,20,cnt]=1.5*np.sin(3*np.pi*t); #Fuente senoidal en (20,20)
+    wn[20,20,cnt]=np.sin(3*np.pi*t); #Fuente senoidal en (20,20)
     
     """
     Paredes
@@ -92,16 +93,29 @@ while(t<T):
     t+=dt;
 
 """
-Calculo de RMS
+Calculo de SPL
 """
-wRMS = np.sqrt(np.mean(wn[:,:,cnt-150:cnt]**2,axis=-1));
+SPL = np.sqrt(np.mean(wn[:,:,cnt-150:cnt]**2,axis=-1)); #obtengo valor RMS en las últimas
+                                                        #capas temporales (estacionario)
+SPL = sp.ndimage.filters.gaussian_filter(SPL, [1,1], mode='constant') #Promedio espacial (suavizado)
+SPL = np.log(np.divide(SPL,np.amin(SPL))) #Paso a dBFS
 
 """
 Parámetros visuales
 """
 fig = plt.figure()
-ax = plt.axes(xlim=(1, nx-1), ylim=(1, ny-1))
-im = ax.imshow(wn[:,:,0], animated=True, vmin=-.5,vmax=.5, cmap='viridis')
+ax1 = plt.subplot(1,2,1)
+ax1.set_title('Propagación')
+ax1.set_xlim(1, nx-1)
+ax1.set_ylim(1,ny-1)
+im = ax1.imshow(wn[:,:,0], animated=True, vmin=-.2,vmax=.2, cmap='viridis')
+
+ax2 = plt.subplot(1,2,2)
+ax2.set_title('SPL')
+ax2.set_xlim(1, nx-1) 
+ax2.set_ylim(1,ny-1)
+ax2.imshow(SPL, animated=False, vmin=0,vmax=np.amax(SPL), cmap='plasma')
+
 
 """
 Pintura de obstaculos
@@ -131,4 +145,3 @@ ani = animation.FuncAnimation(fig, animate, init_func=init,
                               frames=cnt-2, interval=1, blit=True)
 
 #ani.save('barrera.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-  
