@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
 import scipy as sp
+import scipy.ndimage
 
 """
 Dominio
